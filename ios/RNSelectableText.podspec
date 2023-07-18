@@ -5,7 +5,7 @@ Pod::Spec.new do |s|
   s.description  = <<-DESC
                   RNSelectableText
                    DESC
-  s.homepage     = "https://github.com/vandrei977/react-native-selectable-text"
+  s.homepage     = "https://github.com/VikalpP/react-native-highlightable-text"
   s.license      = "MIT"
   # s.license      = { :type => "MIT", :file => "FILE_LICENSE" }
   s.author             = { "author" => "author@domain.cn" }
