@@ -88,7 +88,8 @@ export const HighlightableText = ({
 
   return (
     <RNSelectableText
-      key={v4()}
+      // change key to force re-render whenever highlights change
+      key={JSON.stringify(highlights)}
       style={style}
       onHighlightPress={
         Platform.OS === 'ios' ? onHighlightPressNative : () => {}
