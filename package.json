@@ -4,10 +4,7 @@
   "description": "Highlightable React Native Text component",
   "main": "index.tsx",
   "homepage": "https://github.com/VikalpP/react-native-highlightable-text",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/VikalpP/react-native-highlightable-text"
-  },
+  "repository": "https://github.com/VikalpP/react-native-highlightable-text.git",
   "scripts": {
     "semantic-release": "semantic-release"
   },
