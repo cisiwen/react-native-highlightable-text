@@ -34,7 +34,7 @@ UITextPosition* beginning;
 {
     if (self = [super initWithBridge:bridge]) {
         // `blurOnSubmit` defaults to `false` for <TextInput multiline={true}> by design.
-        self.blurOnSubmit = NO;
+        // self.blurOnSubmit = NO;
         
         _backedTextInputView = [[RCTUITextView alloc] initWithFrame:self.bounds];
         _backedTextInputView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
@@ -78,11 +78,46 @@ UITextPosition* beginning;
         [_backedTextInputView addGestureRecognizer:longPressGesture];
         [_backedTextInputView addGestureRecognizer:tapGesture];
         [_backedTextInputView addGestureRecognizer:singleTapGesture];
-        
+
         [self setUserInteractionEnabled:YES];
     }
 
     return self;
+}
+
+- (void) textInputDidChangeSelection {
+    if (self.onTextSelectionChange) {
+        RCTTextSelection *selection = self.selection;
+        CGRect selectionRect = [self getSelectionRect];
+
+        self.onTextSelectionChange(@{
+            @"selection": @{
+                @"start": @(selection.start),
+                @"end": @(selection.end),
+                @"rect": @{
+                    @"x": @(selectionRect.origin.x),
+                    @"y": @(selectionRect.origin.y),
+                    @"width": @(selectionRect.size.width),
+                    @"height": @(selectionRect.size.height)
+                }
+            }
+        });
+    }
+}
+
+- (CGRect) getSelectionRect {
+    NSArray<UITextSelectionRect *> *selectionRects = [_backedTextInputView selectionRectsForRange:_backedTextInputView.selectedTextRange];
+    CGRect completeRect = CGRectNull;
+
+    for (UITextSelectionRect *selectionRect in selectionRects) {
+        if (CGRectIsNull(completeRect)) {
+            completeRect = selectionRect.rect;
+        } else {
+            completeRect = CGRectUnion(completeRect, selectionRect.rect);
+        }
+    }
+    
+    return completeRect;
 }
 
 -(void) _handleGesture
@@ -90,35 +125,6 @@ UITextPosition* beginning;
     if (!_backedTextInputView.isFirstResponder) {
         [_backedTextInputView becomeFirstResponder];
     }
-    
-    UIMenuController *menuController = [UIMenuController sharedMenuController];
-    
-    if (menuController.isMenuVisible) return;
-    
-    NSMutableArray *menuControllerItems = [NSMutableArray arrayWithCapacity:self.menuItems.count];
-    
-    for(NSString *menuItemName in self.menuItems) {
-        NSString *sel = [NSString stringWithFormat:@"%@%@", RNST_CUSTOM_SELECTOR, menuItemName];
-        UIMenuItem *item = [[UIMenuItem alloc] initWithTitle: menuItemName
-                                                      action: NSSelectorFromString(sel)];
-        
-        [menuControllerItems addObject: item];
-    }
-    
-    menuController.menuItems = menuControllerItems;
-
-
-    UITextRange *selectionRange = [_backedTextInputView selectedTextRange];
-    NSArray *selectionRects = [_backedTextInputView selectionRectsForRange:selectionRange];
-    CGRect completeRect = CGRectNull;
-    for (UITextSelectionRect *selectionRect in selectionRects) {
-    if (CGRectIsNull(completeRect)) {
-        completeRect = selectionRect.rect;
-    } else completeRect = CGRectUnion(completeRect,selectionRect.rect);
-}
-
-    [menuController setTargetRect:completeRect inView:self];
-    [menuController setMenuVisible:YES animated:YES];
 }
 
 -(void) handleSingleTap: (UITapGestureRecognizer *) gesture
@@ -143,16 +149,34 @@ UITextPosition* beginning;
     });
 }
 
+-(void) selectWordOnTap: (UITapGestureRecognizer *) gesture
+{
+    CGPoint pos = [gesture locationInView:_backedTextInputView];
+    pos.y += _backedTextInputView.contentOffset.y;
+    
+    UITextPosition *tapPos = [_backedTextInputView closestPositionToPoint:pos];
+    UITextRange *word = [_backedTextInputView.tokenizer rangeEnclosingPosition:tapPos withGranularity:(UITextGranularityWord) inDirection:UITextLayoutDirectionRight];
+    
+    UITextPosition* beginning = _backedTextInputView.beginningOfDocument;
+    
+    UITextPosition *selectionStart = word.start;
+    UITextPosition *selectionEnd = word.end;
+    
+    const NSInteger location = [_backedTextInputView offsetFromPosition:beginning toPosition:selectionStart];
+    const NSInteger endLocation = [_backedTextInputView offsetFromPosition:beginning toPosition:selectionEnd];
+    
+    [_backedTextInputView setSelectedRange:NSMakeRange(location, endLocation)];
+    [_backedTextInputView select:self];
+}
+
 -(void) handleLongPress: (UILongPressGestureRecognizer *) gesture
 {
-    
     CGPoint pos = [gesture locationInView:_backedTextInputView];
     pos.y += _backedTextInputView.contentOffset.y;
     
     UITextPosition *tapPos = [_backedTextInputView closestPositionToPoint:pos];
     UITextRange *word = [_backedTextInputView.tokenizer rangeEnclosingPosition:tapPos withGranularity:(UITextGranularityWord) inDirection:UITextLayoutDirectionRight];
 
-    
     switch ([gesture state]) {
         case UIGestureRecognizerStateBegan:
             selectionStart = word.start;
@@ -163,28 +187,23 @@ UITextPosition* beginning;
             selectionStart = nil;
             [self _handleGesture];
             return;
-            
         default:
             break;
     }
     UITextPosition *selectionEnd = word.end;
     
-
-    const NSInteger location = [_backedTextInputView offsetFromPosition:beginning toPosition:selectionStart];
+    const NSInteger startLocation = [_backedTextInputView offsetFromPosition:beginning toPosition:selectionStart];
     const NSInteger endLocation = [_backedTextInputView offsetFromPosition:beginning toPosition:selectionEnd];
-    NSLog(@"location:%i endlocation:%i difference:%i", location, endLocation, endLocation - location);
-    if (location == 0 && endLocation == 0) return;
-
     
-    [_backedTextInputView setSelectedRange:NSMakeRange(location, endLocation)];
+    if (startLocation == 0 && endLocation == 0) return;
+    
+    [_backedTextInputView setSelectedRange:NSMakeRange(startLocation, endLocation)];
     [_backedTextInputView select:self];
-
 }
 
 -(void) handleTap: (UITapGestureRecognizer *) gesture
 {
-    [_backedTextInputView select:self];
-    [_backedTextInputView selectAll:self];
+    [self selectWordOnTap:gesture];
     [self _handleGesture];
 }
 
@@ -204,41 +223,10 @@ UITextPosition* beginning;
     return _backedTextInputView;
 }
 
-- (void)tappedMenuItem:(NSString *)eventType
-{
-    RCTTextSelection *selection = self.selection;
-    
-    NSUInteger start = selection.start;
-    NSUInteger end = selection.end - selection.start;
-    
-    self.onSelection(@{
-        @"content": [[self.attributedText string] substringWithRange:NSMakeRange(start, end)],
-        @"eventType": eventType,
-        @"selectionStart": @(start),
-        @"selectionEnd": @(selection.end)
-    });
-    
-    [_backedTextInputView setSelectedTextRange:nil notifyDelegate:false];
-}
-
-- (NSMethodSignature *)methodSignatureForSelector:(SEL)sel
-{
-    if ([super methodSignatureForSelector:sel]) {
-        return [super methodSignatureForSelector:sel];
-    }
-    return [super methodSignatureForSelector:@selector(tappedMenuItem:)];
-}
-
-- (void)forwardInvocation:(NSInvocation *)invocation
-{
-    NSString *sel = NSStringFromSelector([invocation selector]);
-    NSRange match = [sel rangeOfString:RNST_CUSTOM_SELECTOR];
-    if (match.location == 0) {
-        [self tappedMenuItem:[sel substringFromIndex:17]];
-    } else {
-        [super forwardInvocation:invocation];
-    }
-}
+//RCT_EXPORT_METHOD(dismissSelection)
+//{
+//    [_backedTextInputView setSelectedTextRange:nil notifyDelegate:false];
+//}
 
 - (BOOL)canBecomeFirstResponder
 {
@@ -250,7 +238,7 @@ UITextPosition* beginning;
     if(selectionStart != nil) {return NO;}
     NSString *sel = NSStringFromSelector(action);
     NSRange match = [sel rangeOfString:RNST_CUSTOM_SELECTOR];
-
+    
     if (match.location == 0) {
         return YES;
     }
@@ -266,10 +254,10 @@ UITextPosition* beginning;
         for (UIView *subview in self.subviews.reverseObjectEnumerator) {
             CGPoint subPoint = [subview convertPoint:point toView:self];
             UIView *result = [subview hitTest:subPoint withEvent:event];
-
+            
             if (!result.isFirstResponder) {
                 NSString *name = NSStringFromClass([result class]);
-
+                
                 if ([name isEqual:@"UITextRangeView"]) {
                     sub = result;
                 }
@@ -280,7 +268,7 @@ UITextPosition* beginning;
             [_backedTextInputView setSelectedTextRange:nil notifyDelegate:true];
         }
     }
-
+    
     return [super hitTest:point withEvent:event];
 }
 
