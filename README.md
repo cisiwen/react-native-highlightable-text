@@ -1,7 +1,7 @@
+# react-native-highlightable-text
 
-# react-native-selectable-text
+Highlightable React native Text View component, supports text selection and showing highlights.
 
-This is the updated version of @astrocoders/react-native-selectable-text.
 ## Demo
 
 ### Android
