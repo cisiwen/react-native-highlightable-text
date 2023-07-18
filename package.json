@@ -2,7 +2,10 @@
   "name": "@vikalp_p/react-native-highlightable-text",
   "version": "0.0.0-development",
   "description": "Highlightable React Native Text component",
+  "author": "Vikalp Panseriya <vikalppanseriya@gmail.com>",
   "main": "index.tsx",
+  "private": false,
+  "license": "MIT",
   "homepage": "https://github.com/VikalpP/react-native-highlightable-text",
   "repository": "https://github.com/VikalpP/react-native-highlightable-text.git",
   "scripts": {
@@ -11,8 +14,6 @@
   "keywords": [
     "react-native"
   ],
-  "author": "Vikalp Panseriya <vikalppanseriya@gmail.com>",
-  "license": "MIT",
   "dependencies": {
     "fast-memoize": "^2.5.2",
     "uuid": "^8.3.2"
@@ -20,7 +21,6 @@
   "devDependencies": {
     "react": "^17.0.2",
     "react-native": "^0.69.0",
-    "rimraf": "^5.0.1",
     "semantic-release": "^21.0.7"
   }
 }
