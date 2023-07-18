@@ -1,6 +1,6 @@
 {
-  "name": "@vikalp_p/react-native-selectable-text",
-  "version": "1.0",
+  "name": "@vikalp_p/react-native-highlightable-text",
+  "version": "0.0.0-development",
   "description": "Highlightable React Native Text component",
   "main": "index.tsx",
   "homepage": "https://github.com/VikalpP/react-native-highlightable-text",
@@ -8,7 +8,9 @@
     "type": "git",
     "url": "https://github.com/VikalpP/react-native-highlightable-text"
   },
-  "scripts": {},
+  "scripts": {
+    "semantic-release": "semantic-release"
+  },
   "keywords": [
     "react-native"
   ],
@@ -20,6 +22,8 @@
   },
   "devDependencies": {
     "react": "^17.0.2",
-    "react-native": "^0.69.0"
+    "react-native": "^0.69.0",
+    "rimraf": "^5.0.1",
+    "semantic-release": "^21.0.7"
   }
 }
