@@ -7,7 +7,7 @@ export interface Highlight {
   color?: ColorValue;
 }
 
-export type onHighlightPressIOSNativeEvent = {
+export type onWordPressIOSNativeEvent = {
   nativeEvent: { clickedRangeStart: number; clickedRangeEnd: number };
 };
 
@@ -29,6 +29,6 @@ export interface SelectionChangeNativeEvent {
 export type RNSelectableTextProps = {
   children: any;
   style: StyleProp<TextStyle>;
-  onHighlightPress: (event: onHighlightPressIOSNativeEvent) => void;
+  onWordPress: (event: onWordPressIOSNativeEvent) => void;
   onTextSelectionChange: (event: SelectionChangeNativeEvent) => void;
 };

@@ -12,7 +12,7 @@ RCT_EXPORT_MODULE()
 }
 
 RCT_EXPORT_VIEW_PROPERTY(value, NSString);
-RCT_EXPORT_VIEW_PROPERTY(onHighlightPress, RCTDirectEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onWordPress, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onTextSelectionChange, RCTDirectEventBlock)
 
 #pragma mark - Multiline <TextInput> (aka TextView) specific properties

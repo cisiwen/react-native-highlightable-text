@@ -13,7 +13,7 @@ import {
   RNSelectableTextProps,
   Selection,
   SelectionChangeNativeEvent,
-  onHighlightPressIOSNativeEvent,
+  onWordPressIOSNativeEvent,
 } from './types';
 import { combineHighlights, mapHighlightsRanges } from './utils';
 
@@ -27,6 +27,7 @@ interface HighlightableTextProps {
   highlightColor?: ColorValue;
   prependToChild?: ReactNode;
   appendToChildren?: ReactNode;
+  onWordPress?: (event: onWordPressIOSNativeEvent['nativeEvent']) => void;
   onSelectionChange?: (selection: Selection) => void;
   onHighlightPress?: (id: string) => void;
 }
@@ -38,6 +39,7 @@ export const HighlightableText = ({
   highlightColor,
   prependToChild,
   appendToChildren,
+  onWordPress,
   onSelectionChange,
   onHighlightPress,
 }: HighlightableTextProps) => {
@@ -45,8 +47,11 @@ export const HighlightableText = ({
     onSelectionChange?.(event.nativeEvent.selection);
   };
 
-  const onHighlightPressNative = (event: onHighlightPressIOSNativeEvent) => {
-    if (highlights.length === 0) return;
+  const onWordPressNative = (event: onWordPressIOSNativeEvent) => {
+    if (highlights.length === 0) {
+      onWordPress?.(event.nativeEvent);
+      return;
+    }
 
     const { clickedRangeStart, clickedRangeEnd } = event.nativeEvent;
     const mergedHighlights = combineHighlights(highlights);
@@ -58,6 +63,8 @@ export const HighlightableText = ({
 
     if (highlightInRange) {
       onHighlightPress?.(highlightInRange.id);
+    } else {
+      onWordPress?.(event.nativeEvent);
     }
   };
 
@@ -91,9 +98,7 @@ export const HighlightableText = ({
       // change key to force re-render whenever highlights change
       key={JSON.stringify(highlights)}
       style={style}
-      onHighlightPress={
-        Platform.OS === 'ios' ? onHighlightPressNative : () => {}
-      }
+      onWordPress={Platform.OS === 'ios' ? onWordPressNative : () => {}}
       onTextSelectionChange={onSelectionNative}
     >
       <Text>{textValue}</Text>

@@ -90,18 +90,34 @@ UITextPosition* beginning;
         RCTTextSelection *selection = self.selection;
         CGRect selectionRect = [self getSelectionRect];
 
-        self.onTextSelectionChange(@{
-            @"selection": @{
-                @"start": @(selection.start),
-                @"end": @(selection.end),
-                @"rect": @{
-                    @"x": @(selectionRect.origin.x),
-                    @"y": @(selectionRect.origin.y),
-                    @"width": @(selectionRect.size.width),
-                    @"height": @(selectionRect.size.height)
+        if (selectionRect.origin.x == INFINITY || selectionRect.origin.y == INFINITY || selectionRect.size.width == INFINITY || selectionRect.size.height == INFINITY) {
+            // it means that the selection is collapsed
+            self.onTextSelectionChange(@{
+                @"selection": @{
+                    @"start": @(selection.start),
+                    @"end": @(selection.end),
+                    @"rect": @{
+                        @"x": @(0),
+                        @"y": @(0),
+                        @"width": @(0),
+                        @"height": @(0)
+                    }
                 }
-            }
-        });
+            });
+        } else {
+            self.onTextSelectionChange(@{
+                @"selection": @{
+                    @"start": @(selection.start),
+                    @"end": @(selection.end),
+                    @"rect": @{
+                        @"x": @(selectionRect.origin.x),
+                        @"y": @(selectionRect.origin.y),
+                        @"width": @(selectionRect.size.width),
+                        @"height": @(selectionRect.size.height)
+                    }
+                }
+            });
+        }
     }
 }
 
@@ -140,11 +156,11 @@ UITextPosition* beginning;
     UITextPosition *selectionStart = word.start;
     UITextPosition *selectionEnd = word.end;
     
-    const NSInteger location = [_backedTextInputView offsetFromPosition:beginning toPosition:selectionStart];
+    const NSInteger startLocation = [_backedTextInputView offsetFromPosition:beginning toPosition:selectionStart];
     const NSInteger endLocation = [_backedTextInputView offsetFromPosition:beginning toPosition:selectionEnd];
     
-    self.onHighlightPress(@{
-        @"clickedRangeStart": @(location),
+    self.onWordPress(@{
+        @"clickedRangeStart": @(startLocation),
         @"clickedRangeEnd": @(endLocation),
     });
 }
