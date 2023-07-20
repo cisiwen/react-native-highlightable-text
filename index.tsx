@@ -10,6 +10,7 @@ import {
 import { v4 } from 'uuid';
 import {
   Highlight,
+  HighlightRectsCalculatedNativeEvent,
   RNSelectableTextProps,
   Selection,
   SelectionChangeNativeEvent,
@@ -30,6 +31,9 @@ interface HighlightableTextProps {
   onWordPress?: (event: onWordPressIOSNativeEvent['nativeEvent']) => void;
   onSelectionChange?: (selection: Selection) => void;
   onHighlightPress?: (id: string) => void;
+  onHighlightRectsCalculated?: (
+    event: HighlightRectsCalculatedNativeEvent
+  ) => void;
 }
 
 export const HighlightableText = ({
@@ -42,6 +46,7 @@ export const HighlightableText = ({
   onWordPress,
   onSelectionChange,
   onHighlightPress,
+  onHighlightRectsCalculated,
 }: HighlightableTextProps) => {
   const onSelectionNative = (event: SelectionChangeNativeEvent) => {
     onSelectionChange?.(event.nativeEvent.selection);
@@ -98,8 +103,10 @@ export const HighlightableText = ({
       // change key to force re-render whenever highlights change
       key={JSON.stringify(highlights)}
       style={style}
+      highlights={highlights}
       onWordPress={Platform.OS === 'ios' ? onWordPressNative : () => {}}
       onTextSelectionChange={onSelectionNative}
+      onHighlightRectsCalculated={onHighlightRectsCalculated}
     >
       <Text>{textValue}</Text>
     </RNSelectableText>

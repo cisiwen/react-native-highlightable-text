@@ -22,6 +22,20 @@ export interface Selection {
   };
 }
 
+export interface HighlightRectsCalculatedNativeEvent {
+  nativeEvent: {
+    rects: Array<{
+      id: string;
+      rect: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+      };
+    }>;
+  };
+}
+
 export interface SelectionChangeNativeEvent {
   nativeEvent: { selection: Selection };
 }
@@ -29,6 +43,10 @@ export interface SelectionChangeNativeEvent {
 export type RNSelectableTextProps = {
   children: any;
   style: StyleProp<TextStyle>;
+  highlights?: Highlight[];
   onWordPress: (event: onWordPressIOSNativeEvent) => void;
   onTextSelectionChange: (event: SelectionChangeNativeEvent) => void;
+  onHighlightRectsCalculated?: (
+    event: HighlightRectsCalculatedNativeEvent
+  ) => void;
 };

@@ -50,7 +50,7 @@ UITextPosition* beginning;
         _backedTextInputView.editable = NO;
         _backedTextInputView.selectable = YES;
         _backedTextInputView.contextMenuHidden = YES;
-
+        
         beginning = _backedTextInputView.beginningOfDocument;
         
         for (UIGestureRecognizer *gesture in [_backedTextInputView gestureRecognizers]) {
@@ -63,7 +63,7 @@ UITextPosition* beginning;
                 gesture.enabled = NO;
             }
         }
-
+        
         [self addSubview:_backedTextInputView];
         
         UILongPressGestureRecognizer *longPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPress:)];
@@ -78,18 +78,70 @@ UITextPosition* beginning;
         [_backedTextInputView addGestureRecognizer:longPressGesture];
         [_backedTextInputView addGestureRecognizer:tapGesture];
         [_backedTextInputView addGestureRecognizer:singleTapGesture];
-
+        
         [self setUserInteractionEnabled:YES];
+        
     }
-
+    
     return self;
+}
+
+// call calculateRectsForHighlights when the view is added to the view hierarchy
+- (void) didMoveToWindow {
+    [super didMoveToWindow];
+    
+    // after 300ms, calculate the rects for the highlights
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 300 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+        [self calculateRectsForHighlights];
+    });
+}
+
+
+- (void) calculateRectsForHighlights {
+    RCTLogInfo(@"calculating rects for highlights %@ with callback function %@", self.highlights, self.onHighlightRectsCalculated);
+    if (self.highlights) {
+        NSMutableArray *rects = [[NSMutableArray alloc] init];
+        
+        for (NSDictionary *highlight in self.highlights) {
+            NSInteger start = [highlight[@"start"] integerValue];
+            NSInteger end = [highlight[@"end"] integerValue];
+            
+            UITextPosition *startPosition = [_backedTextInputView positionFromPosition:beginning offset:start];
+            UITextPosition *endPosition = [_backedTextInputView positionFromPosition:beginning offset:end];
+            
+            UITextRange *textRange = [_backedTextInputView textRangeFromPosition:startPosition toPosition:endPosition];
+            
+            CGRect selectionRect = [_backedTextInputView firstRectForRange:textRange];
+            
+            NSLog(@"start %ld end %ld selectionRect %@", (long)start, (long)end, NSStringFromCGRect(selectionRect));
+            
+            if (selectionRect.origin.x == INFINITY || selectionRect.origin.y == INFINITY || selectionRect.size.width == INFINITY || selectionRect.size.height == INFINITY) {
+                // it means that the selection is collapsed, continue without adding it
+                continue;
+            } else {
+                [rects addObject:@{
+                    @"id": highlight[@"id"],
+                    @"rect": @{
+                        @"x": @(selectionRect.origin.x),
+                        @"y": @(selectionRect.origin.y),
+                        @"width": @(selectionRect.size.width),
+                        @"height": @(selectionRect.size.height)
+                    }
+                }];
+            }
+        }
+        
+        self.onHighlightRectsCalculated(@{
+            @"rects": rects
+        });
+    }
 }
 
 - (void) textInputDidChangeSelection {
     if (self.onTextSelectionChange) {
         RCTTextSelection *selection = self.selection;
         CGRect selectionRect = [self getSelectionRect];
-
+        
         if (selectionRect.origin.x == INFINITY || selectionRect.origin.y == INFINITY || selectionRect.size.width == INFINITY || selectionRect.size.height == INFINITY) {
             // it means that the selection is collapsed
             self.onTextSelectionChange(@{
@@ -124,7 +176,7 @@ UITextPosition* beginning;
 - (CGRect) getSelectionRect {
     NSArray<UITextSelectionRect *> *selectionRects = [_backedTextInputView selectionRectsForRange:_backedTextInputView.selectedTextRange];
     CGRect completeRect = CGRectNull;
-
+    
     for (UITextSelectionRect *selectionRect in selectionRects) {
         if (CGRectIsNull(completeRect)) {
             completeRect = selectionRect.rect;
@@ -192,7 +244,7 @@ UITextPosition* beginning;
     
     UITextPosition *tapPos = [_backedTextInputView closestPositionToPoint:pos];
     UITextRange *word = [_backedTextInputView.tokenizer rangeEnclosingPosition:tapPos withGranularity:(UITextGranularityWord) inDirection:UITextLayoutDirectionRight];
-
+    
     switch ([gesture state]) {
         case UIGestureRecognizerStateBegan:
             selectionStart = word.start;
@@ -238,11 +290,6 @@ UITextPosition* beginning;
 {
     return _backedTextInputView;
 }
-
-//RCT_EXPORT_METHOD(dismissSelection)
-//{
-//    [_backedTextInputView setSelectedTextRange:nil notifyDelegate:false];
-//}
 
 - (BOOL)canBecomeFirstResponder
 {
