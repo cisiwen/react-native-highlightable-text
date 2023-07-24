@@ -53,30 +53,11 @@ UITextPosition* beginning;
         
         beginning = _backedTextInputView.beginningOfDocument;
         
-        for (UIGestureRecognizer *gesture in [_backedTextInputView gestureRecognizers]) {
-            if (
-                [gesture isKindOfClass:[UIPanGestureRecognizer class]]
-            ) {
-                [_backedTextInputView setExclusiveTouch:NO];
-                gesture.enabled = YES;
-            } else {
-                gesture.enabled = NO;
-            }
-        }
-        
         [self addSubview:_backedTextInputView];
-        
-        UILongPressGestureRecognizer *longPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPress:)];
-        
-        
-        UITapGestureRecognizer *tapGesture = [ [UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap:)];
-        tapGesture.numberOfTapsRequired = 2;
         
         UITapGestureRecognizer *singleTapGesture = [ [UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleSingleTap:)];
         singleTapGesture.numberOfTapsRequired = 1;
         
-        [_backedTextInputView addGestureRecognizer:longPressGesture];
-        [_backedTextInputView addGestureRecognizer:tapGesture];
         [_backedTextInputView addGestureRecognizer:singleTapGesture];
         
         [self setUserInteractionEnabled:YES];
@@ -96,9 +77,7 @@ UITextPosition* beginning;
     });
 }
 
-
 - (void) calculateRectsForHighlights {
-    RCTLogInfo(@"calculating rects for highlights %@ with callback function %@", self.highlights, self.onHighlightRectsCalculated);
     if (self.highlights) {
         NSMutableArray *rects = [[NSMutableArray alloc] init];
         
@@ -112,8 +91,6 @@ UITextPosition* beginning;
             UITextRange *textRange = [_backedTextInputView textRangeFromPosition:startPosition toPosition:endPosition];
             
             CGRect selectionRect = [_backedTextInputView firstRectForRange:textRange];
-            
-            NSLog(@"start %ld end %ld selectionRect %@", (long)start, (long)end, NSStringFromCGRect(selectionRect));
             
             if (selectionRect.origin.x == INFINITY || selectionRect.origin.y == INFINITY || selectionRect.size.width == INFINITY || selectionRect.size.height == INFINITY) {
                 // it means that the selection is collapsed, continue without adding it
@@ -215,64 +192,6 @@ UITextPosition* beginning;
         @"clickedRangeStart": @(startLocation),
         @"clickedRangeEnd": @(endLocation),
     });
-}
-
--(void) selectWordOnTap: (UITapGestureRecognizer *) gesture
-{
-    CGPoint pos = [gesture locationInView:_backedTextInputView];
-    pos.y += _backedTextInputView.contentOffset.y;
-    
-    UITextPosition *tapPos = [_backedTextInputView closestPositionToPoint:pos];
-    UITextRange *word = [_backedTextInputView.tokenizer rangeEnclosingPosition:tapPos withGranularity:(UITextGranularityWord) inDirection:UITextLayoutDirectionRight];
-    
-    UITextPosition* beginning = _backedTextInputView.beginningOfDocument;
-    
-    UITextPosition *selectionStart = word.start;
-    UITextPosition *selectionEnd = word.end;
-    
-    const NSInteger location = [_backedTextInputView offsetFromPosition:beginning toPosition:selectionStart];
-    const NSInteger endLocation = [_backedTextInputView offsetFromPosition:beginning toPosition:selectionEnd];
-    
-    [_backedTextInputView setSelectedRange:NSMakeRange(location, endLocation)];
-    [_backedTextInputView select:self];
-}
-
--(void) handleLongPress: (UILongPressGestureRecognizer *) gesture
-{
-    CGPoint pos = [gesture locationInView:_backedTextInputView];
-    pos.y += _backedTextInputView.contentOffset.y;
-    
-    UITextPosition *tapPos = [_backedTextInputView closestPositionToPoint:pos];
-    UITextRange *word = [_backedTextInputView.tokenizer rangeEnclosingPosition:tapPos withGranularity:(UITextGranularityWord) inDirection:UITextLayoutDirectionRight];
-    
-    switch ([gesture state]) {
-        case UIGestureRecognizerStateBegan:
-            selectionStart = word.start;
-            break;
-        case UIGestureRecognizerStateChanged:
-            break;
-        case UIGestureRecognizerStateEnded:
-            selectionStart = nil;
-            [self _handleGesture];
-            return;
-        default:
-            break;
-    }
-    UITextPosition *selectionEnd = word.end;
-    
-    const NSInteger startLocation = [_backedTextInputView offsetFromPosition:beginning toPosition:selectionStart];
-    const NSInteger endLocation = [_backedTextInputView offsetFromPosition:beginning toPosition:selectionEnd];
-    
-    if (startLocation == 0 && endLocation == 0) return;
-    
-    [_backedTextInputView setSelectedRange:NSMakeRange(startLocation, endLocation)];
-    [_backedTextInputView select:self];
-}
-
--(void) handleTap: (UITapGestureRecognizer *) gesture
-{
-    [self selectWordOnTap:gesture];
-    [self _handleGesture];
 }
 
 - (void)setAttributedText:(NSAttributedString *)attributedText
