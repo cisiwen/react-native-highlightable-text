@@ -1,6 +1,6 @@
 {
-  "name": "@vikalp_p/react-native-highlightable-text",
-  "version": "0.0.0-development",
+  "name": "@cisiwen/react-native-highlightable-text",
+  "version": "0.0.3",
   "description": "Highlightable React Native Text component",
   "author": "Vikalp Panseriya <vikalppanseriya@gmail.com>",
   "main": "index.tsx",

@@ -1,9 +1,4 @@
-#if __has_include(<RCTText/RCTBaseTextInputViewManager.h>)
-#import <RCTText/RCTBaseTextInputViewManager.h>
-#else
-#import "RCTBaseTextInputViewManager.h"
-#endif
-
+#import <React/RCTBaseTextInputViewManager.h>
 NS_ASSUME_NONNULL_BEGIN
 
 @interface RNSelectableTextManager : RCTBaseTextInputViewManager

@@ -1,25 +1,10 @@
-#if __has_include(<RCTText/RCTTextSelection.h>)
-#import <RCTText/RCTTextSelection.h>
-#else
-#import "RCTTextSelection.h"
-#endif
-
-#if __has_include(<RCTText/RCTUITextView.h>)
-#import <RCTText/RCTUITextView.h>
-#else
-#import "RCTUITextView.h"
-#endif
-
+#import <React/RCTUITextView.h>
 #import "RNSelectableTextView.h"
-
-#if __has_include(<RCTText/RCTTextAttributes.h>)
-#import <RCTText/RCTTextAttributes.h>
-#else
-#import "RCTTextAttributes.h"
-#endif
-
+#import <React/RCTTextAttributes.h>
 #import <React/RCTUtils.h>
-
+#import <React/RCTBaseTextInputView.h>
+#import <React/RCTMultilineTextInputView.h>
+#import <React-RCTText/RCTText/RCTTextSelection.h>
 @implementation RNSelectableTextView
 {
     RCTUITextView *_backedTextInputView;
